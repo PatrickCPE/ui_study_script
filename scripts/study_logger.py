@@ -24,15 +24,16 @@ class StudyManager:
         self.participant_id = 'NULL'
         self.interface_type = 'NULL'
         self.clutter_type = "NULL"
-        self.object_opts = ["Apple", "Apple", "Banana", "Banana", "Cat", "Cat", "Dog", "Dog", "Echo", "Echo",
-                            "Fox", "Fox", "Gyarados", "Gyarados", "Hello", "Hello", "Igloo", "Igloo", "Jack", "Jack",
-                            "Kite", "Kite", "Lamb", "Lamb"]
+        self.object_opts = ["Lobster", "Lobster", "Toy Drill", "Toy Drill", "Robot A", "Robot A", "Robot B", "Robot B",
+                            "Robot C", "Robot C", "Robot D", "Robot D", "Gluestick", "Gluestick", "Toothpaste",
+                            "Toothpaste", "Juice Bottle", "Juice Bottle", "Toy Screwdriver", "Toy Screwdriver", "Box A",
+                            "Box A", "Box B", "Box B"]
         self.object_opts_copy = list(self.object_opts)
         self.run_number = 0
         self.trial_number = 0
         self.full_run = True
         self.trial_success_log = [-1] * self.num_trials
-        self.run_type_pub = rospy.Publisher('full_run_flag', Bool, queue_size=10)
+        self.run_type_pub = rospy.Publisher('skip_grasp', Bool, queue_size=10)
         self.success_pub = rospy.Publisher('run_success', Bool, queue_size=10)
 
         #Publishers for system_state_logger
@@ -152,7 +153,7 @@ class StudyManager:
                 self.full_run = True
             elif self.trial_number == self.num_trials - 1:
                 self.full_run = True
-            self.run_type_pub.publish(self.full_run)
+            self.run_type_pub.publish(not self.full_run)
 
     def confirm_trial_success(self):
         """
