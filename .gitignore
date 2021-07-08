@@ -1,3 +1,3 @@
 .idea
-study_logging/*.csv
+scripts/study_logging
 venv
