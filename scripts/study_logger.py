@@ -1,10 +1,15 @@
+#!/usr/bin/env python
+
 # coding=utf-8
 # Test Script for the GUI vs TUI study
 
 import rospy
 from std_msgs.msg import Bool
-import csv
+from std_msgs.msg import String
+from std_msgs.msg import UInt64
+import os
 import random
+import datetime
 
 
 # If using python3 uncomment the raw_inputs and replace with input
@@ -14,7 +19,6 @@ class StudyManager:
     Script to manage both logging of the Scooter's TUI and GUI, and to handle miscellaneous tasks like object pick order
     randomization and object confirmation (done via experimenters)
     """
-
     def __init__(self):
         self.num_trials = 24
         self.participant_id = 'NULL'
@@ -30,6 +34,13 @@ class StudyManager:
         self.trial_success_log = [-1] * self.num_trials
         self.run_type_pub = rospy.Publisher('full_run_flag', Bool, queue_size=10)
         self.success_pub = rospy.Publisher('run_success', Bool, queue_size=10)
+
+        #Publishers for system_state_logger
+        self.participant_id_pub = rospy.Publisher('participant_id', String, queue_size=10)
+        self.trial_type_pub = rospy.Publisher('trial_type', String, queue_size=10)
+        self.interface_type_pub = rospy.Publisher('interface_type', String, queue_size=10)
+        self.trial_number_pub = rospy.Publisher('trial_number', UInt64, queue_size=10)
+
         rospy.init_node('study_manager', anonymous=True)
 
     def obtain_user_id(self):
@@ -47,6 +58,7 @@ class StudyManager:
             # confirmation = input("(Case Sensitive) y/n: ")
             if confirmation == 'y':
                 valid = True
+        self.participant_id_pub.publish(self.participant_id)
 
     def obtain_interface_type(self):
         """
@@ -110,10 +122,22 @@ class StudyManager:
 
         :return: None
         """
+        filename = os.path.join(os.path.dirname(__file__), "study_logging/" + str(self.participant_id) + ".csv")
+        print("Generating:{}".format(filename))
+        f = open(filename, 'a')
+        f.write(str(datetime.datetime.now()) + ',' + str(self.interface_type) + ',' + str(self.clutter_type) +'\n')
+        range(0, self.num_trials, 1)
+        for i in range(self.num_trials):
+            f.write(str(datetime.datetime.now()) + ',' + str(self.trial_success_log[i]))
+            f.write('\n')
+        f.close()
+        """
         filename = self.participant_id + ".csv"
         with open(filename, 'a') as csv_file:
             log_writer = csv.writer(csv_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
             log_writer.writerow((self.interface_type, self.clutter_type, self.trial_success_log))
+        """
+
 
     def update_run_mode(self):
         """
@@ -174,10 +198,13 @@ class StudyManager:
         :return: None
         """
         self.obtain_trial_type()
+        self.trial_type_pub.publish(self.clutter_type)
+        self.interface_type_pub.publish(self.interface_type)
 
         print("Current Trial Scenario (Interface = {0})(Clutter = {1})".format(self.interface_type, self.clutter_type))
         while self.trial_number < self.num_trials:
             self.update_run_mode()  # TODO Make this work
+            self.trial_number_pub.publish(self.trial_number)
             self.determine_grasp_object()
             print("Beginning trial {0}".format(self.trial_number))
             self.confirm_trial_success()
