@@ -10,6 +10,7 @@ from std_msgs.msg import UInt64
 import os
 import random
 import datetime
+import copy
 
 
 # If using python3 uncomment the raw_inputs and replace with input
@@ -28,7 +29,7 @@ class StudyManager:
                             "Robot C", "Robot C", "Robot D", "Robot D", "Gluestick", "Gluestick", "Toothpaste",
                             "Toothpaste", "Juice Bottle", "Juice Bottle", "Toy Screwdriver", "Toy Screwdriver", "Box A",
                             "Box A", "Box B", "Box B"]
-        self.object_opts_copy = list(self.object_opts)
+        self.object_opts_copy = copy.deepcopy(self.object_opts)
         self.run_number = 0
         self.trial_number = 0
         self.full_run = True
@@ -94,7 +95,7 @@ class StudyManager:
             clutter_name = raw_input(
                 "Please enter the name of the user interface(case sensitive) (uncluttered/cluttered): ")
             # clutter_name = input(
-            #    "Please enter the name of the user interface(case sensitive) (uncluttered/cluttered): ")
+                # "Please enter the name of the user interface(case sensitive) (uncluttered/cluttered): ")
             print("Please confirm this is the proper clutter type: {0}".format(clutter_name))
             clutter_confirmation = raw_input("(Case Sensitive) y/n: ")
             # clutter_confirmation = input("(Case Sensitive) y/n: ")
@@ -218,7 +219,7 @@ class StudyManager:
         while self.run_number < 4:
             self.start_trial()
             # Refresh the object list between trials
-            self.object_opts = self.object_opts_copy
+            self.object_opts = copy.deepcopy(self.object_opts_copy)
             self.run_number = self.run_number + 1
 
 
