@@ -27,8 +27,7 @@ class StudyManager:
         self.clutter_type = "NULL"
         self.object_opts = ["Lobster", "Lobster", "Toy Drill", "Toy Drill", "Robot A", "Robot A", "Robot B", "Robot B",
                             "Robot C", "Robot C", "Robot D", "Robot D", "Gluestick", "Gluestick", "Toothpaste",
-                            "Toothpaste", "Juice Bottle", "Juice Bottle", "Toy Screwdriver", "Toy Screwdriver", "Box A",
-                            "Box A", "Box B", "Box B"]
+                            "Toothpaste"]
         self.object_opts_copy = copy.deepcopy(self.object_opts)
         self.run_number = 0
         self.trial_number = 0
@@ -37,13 +36,20 @@ class StudyManager:
         self.run_type_pub = rospy.Publisher('skip_grasp', Bool, queue_size=10)
         self.success_pub = rospy.Publisher('run_success', Bool, queue_size=10)
 
-        #Publishers for system_state_logger
+        # Publishers for system_state_logger
         self.participant_id_pub = rospy.Publisher('participant_id', String, queue_size=10)
         self.trial_type_pub = rospy.Publisher('trial_type', String, queue_size=10)
         self.interface_type_pub = rospy.Publisher('interface_type', String, queue_size=10)
         self.trial_number_pub = rospy.Publisher('trial_number', UInt64, queue_size=10)
 
         rospy.init_node('study_manager', anonymous=True)
+
+    def print_objects(self):
+        print("-"*5)
+        print("PARTICIPANT {} | {} | {}".format(self.participant_id, self.interface_type, self.clutter_type))
+        for object in self.object_opts:
+            print(object)
+        print("-"*5)
 
     def obtain_user_id(self):
         """
@@ -140,7 +146,6 @@ class StudyManager:
             log_writer.writerow((self.interface_type, self.clutter_type, self.trial_success_log))
         """
 
-
     def update_run_mode(self):
         """
         Update the system status to determine whether a full pick and place task is performed or if only a select is
@@ -181,17 +186,6 @@ class StudyManager:
             self.success_pub.publish(trial_success)
             self.trial_success_log[self.trial_number] = trial_success
 
-    def determine_grasp_object(self):
-        """
-        Randomizes from the list of grasp objects shown here except for the initial and final trial
-
-        :return: None
-        """
-        if len(self.object_opts) > 0:
-            choice = random.choice(self.object_opts)
-            print("Pick up the {}".format(choice))
-        self.object_opts.remove(choice)
-
     def start_trial(self):
         """
         Informs the tester which object to have the participant select(randomly chosen to avoid bias), and prompts the
@@ -202,13 +196,16 @@ class StudyManager:
         self.obtain_trial_type()
         self.trial_type_pub.publish(self.clutter_type)
         self.interface_type_pub.publish(self.interface_type)
+        random.shuffle(self.object_opts)
+        self.print_objects()
 
-        print("Current Trial Scenario (Interface = {0})(Clutter = {1})".format(self.interface_type, self.clutter_type))
-        while self.trial_number < self.num_trials:
+        # print("Current Trial Scenario (Interface = {0})(Clutter = {1})".format(self.interface_type, self.clutter_type))
+        for object_opt in self.object_opts:
+            print("")
             self.update_run_mode()  # TODO Make this work
-            self.trial_number_pub.publish(self.trial_number)
-            self.determine_grasp_object()
             print("Beginning trial {0}".format(self.trial_number))
+            self.trial_number_pub.publish(self.trial_number)
+            print("Pick up the {}".format(object_opt))
             self.confirm_trial_success()
             self.trial_number = self.trial_number + 1
         self.trial_number = 0
