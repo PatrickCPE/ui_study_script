@@ -26,6 +26,7 @@ class SuccessLogger:
         self.trial_number = 0
         self.participant_id = 'NULL'
         self.interface_type = 'NULL'
+        self.object_name = "NULL"
         self.trial_type = "NULL"
         self.run_number = 0
         self.new_trial = False
@@ -36,6 +37,7 @@ class SuccessLogger:
         self.trial_number_sub = rospy.Subscriber("trial_number", UInt64, self.trial_number_cb)
         self.trial_type_sub = rospy.Subscriber("trial_type", String, self.trial_type_cb)
         self.interface_type_sub = rospy.Subscriber("interface_type", String, self.interface_type_cb)
+        self.object_name_sub = rospy.Subscriber("object_name", String, self.object_name_cb)
 
         self.system_state_sub = rospy.Subscriber("logging_topic", String, self.logging_topic_cb)
 
@@ -53,6 +55,9 @@ class SuccessLogger:
     def trial_number_cb(self, data):
         self.trial_number = data.data
 
+    def object_name_cb(self, data):
+        self.object_name = data.data
+
     def logging_topic_cb(self, data):
         self.previous_system_state = self.system_state
         self.system_state = data.data
@@ -61,7 +66,13 @@ class SuccessLogger:
     def log(self):
         print("Current directory:{}".format(os.path.dirname(__file__)))
 
-        filename = os.path.join(os.path.dirname(__file__), "study_logging/" + str(self.participant_id) + '_' + self.interface_type + '_' + self.trial_type + "_" + str(self.trial_number) + ".csv")
+        filename = os.path.join(os.path.dirname(__file__), "study_logging/{}_{}_{}_{}_{}.csv".format(
+            self.participant_id,
+            self.interface_type,
+            self.trial_type,
+            self.trial_number,
+            self.object_name
+        ))
         print("Generating:{}".format(filename))
         if self.previous_system_state != self.system_state:
             f = open(filename, 'a')
