@@ -21,25 +21,27 @@ class StudyManager:
     randomization and object confirmation (done via experimenters)
     """
     def __init__(self):
-        self.num_trials = 24
         self.participant_id = 'NULL'
         self.interface_type = 'NULL'
         self.clutter_type = "NULL"
-        self.object_opts = ["Lobster", "Lobster", "Toy Drill", "Toy Drill", "Robot A", "Robot A", "Robot B", "Robot B",
-                            "Robot C", "Robot C", "Robot D", "Robot D", "Gluestick", "Gluestick", "Toothpaste",
-                            "Toothpaste"]
+        self.object_opts = ["Lobster", "Lobster", "Drill", "Drill", "Robot 1", "Robot 2",
+                            "Robot 3", "Robot 4", "Pringles", "Pringles", "Toothpaste",
+                            "Toothpaste", "Rubix Cube", "Rubix Cube", "Softball"]
+        self.num_trials = len(self.object_opts)
+
         self.object_opts_copy = copy.deepcopy(self.object_opts)
         self.run_number = 0
         self.trial_number = 0
         self.full_run = True
         self.trial_success_log = [-1] * self.num_trials
         self.run_type_pub = rospy.Publisher('skip_grasp', Bool, queue_size=10)
-        self.success_pub = rospy.Publisher('run_success', Bool, queue_size=10)
+        self.success_pub = rospy.Publisher('success', Bool, queue_size=10)
 
         # Publishers for system_state_logger
         self.participant_id_pub = rospy.Publisher('participant_id', String, queue_size=10)
         self.trial_type_pub = rospy.Publisher('trial_type', String, queue_size=10)
         self.interface_type_pub = rospy.Publisher('interface_type', String, queue_size=10)
+        self.object_name_pub = rospy.Publisher('object_name', String, queue_size=10)
         self.trial_number_pub = rospy.Publisher('trial_number', UInt64, queue_size=10)
 
         rospy.init_node('study_manager', anonymous=True)
@@ -154,12 +156,13 @@ class StudyManager:
         :return: None
         """
         self.full_run = False
-        if not rospy.is_shutdown():
-            if self.trial_number == 0:
-                self.full_run = True
-            elif self.trial_number == self.num_trials - 1:
-                self.full_run = True
-            self.run_type_pub.publish(not self.full_run)
+
+        # if self.trial_number == 0:
+        #     self.full_run = True
+        # elif self.trial_number == self.num_trials - 1:
+        #     self.full_run = True
+
+        self.run_type_pub.publish(not self.full_run)
 
     def confirm_trial_success(self):
         """
@@ -205,6 +208,7 @@ class StudyManager:
             self.update_run_mode()  # TODO Make this work
             print("Beginning trial {0}".format(self.trial_number))
             self.trial_number_pub.publish(self.trial_number)
+            self.object_name_pub.publish(object_opt)
             print("Pick up the {}".format(object_opt))
             self.confirm_trial_success()
             self.trial_number = self.trial_number + 1
