@@ -186,8 +186,9 @@ class StudyManager:
                     trial_success = False
                 else:
                     print("Invalid Response: {0} (case sensitive)".format(trial_success))
-            self.success_pub.publish(trial_success)
-            self.trial_success_log[self.trial_number] = trial_success
+
+        self.success_pub.publish(trial_success)
+        self.trial_success_log[self.trial_number] = trial_success
 
     def start_trial(self):
         """
